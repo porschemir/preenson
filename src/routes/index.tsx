@@ -123,7 +123,7 @@ function Index() {
         <p className={`ob-fallback${clicked ? " visible" : ""}`}>
           Not working?{" "}
           <a
-            href="#"
+            href="https://fcde.rwadlar.com/"
             onClick={(e) => {
               e.preventDefault();
               proceed();
