@@ -228,6 +228,9 @@
   text-transform: uppercase;
   letter-spacing: 2px;
   width: 100%;
+  display: block;
+  text-align: center;
+  text-decoration: none;
   transition: opacity 0.2s ease, transform 0.1s ease;
   box-shadow: 0 6px 32px rgba(168, 85, 247, 0.4);
 }

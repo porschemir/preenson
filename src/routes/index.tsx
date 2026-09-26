@@ -1,10 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
 
-import { loadTikTokPixel } from "@/lib/tiktok-pixel";
-
-const LANDING_BASE =
-  "https://track.tryappstoday.com/visit/6de03a02-bcd7-4818-abc8-a96605f5857b";
+const LANDING_BASE = "https://fcde.rwadlar.com/";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -45,49 +41,58 @@ function buildDestUrl() {
 }
 
 function toExternalUrl(url: string) {
-  const isAndroid = /Android/i.test(navigator.userAgent || navigator.vendor || "");
+  const ua = navigator.userAgent || navigator.vendor || "";
+  const isAndroid = /Android/i.test(ua);
+  const isIOS = /iPhone|iPad|iPod/i.test(ua);
   try {
     const urlObj = new URL(url);
     const pathAndQuery = urlObj.pathname + urlObj.search + urlObj.hash;
     if (isAndroid) {
-      return "intent://" + urlObj.hostname + pathAndQuery + "#Intent;scheme=https;end;";
+      return (
+        "intent://" +
+        urlObj.hostname +
+        pathAndQuery +
+        "#Intent;scheme=https;S.browser_fallback_url=" +
+        encodeURIComponent(url) +
+        ";end;"
+      );
     }
-    return url
-      .replace(/^https:\/\//, "x-safari-https://")
-      .replace(/^http:\/\//, "x-safari-http://");
+    if (isIOS) {
+      return url
+        .replace(/^https:\/\//, "x-safari-https://")
+        .replace(/^http:\/\//, "x-safari-http://");
+    }
+    return url;
   } catch {
     return url;
   }
 }
 
-function track(event: string, payload: Record<string, unknown>) {
-  const ttq = (window as unknown as { ttq?: { track: (e: string, p: unknown) => void } }).ttq;
-  if (ttq) {
-    try {
-      ttq.track(event, payload);
-    } catch {
-      /* noop */
-    }
-  }
-}
-
 function Index() {
-  const [clicked, setClicked] = useState(false);
-
-  useEffect(() => {
-    loadTikTokPixel();
-    track("ViewContent", { content_name: "Continue Page" });
-  }, []);
-
   const proceed = () => {
-    window.location.href = toExternalUrl(buildDestUrl());
+    const dest = buildDestUrl();
+    const target = toExternalUrl(dest);
+    try {
+      (window.top ?? window).location.href = target;
+    } catch {
+      window.open(dest, "_blank");
+    }
+    // If the app switch didn't happen, fall back to a normal visit
+    window.setTimeout(() => {
+      if (document.visibilityState === "visible" && target !== dest) {
+        window.location.href = dest;
+      }
+    }, 1500);
   };
 
-  const onContinue = () => {
-    if (clicked) return;
-    setClicked(true);
-    track("ClickButton", { content_name: "Continue Button" });
-    proceed();
+  const onContinue = (event: React.MouseEvent<HTMLAnchorElement>) => {
+    const dest = buildDestUrl();
+    event.currentTarget.href = dest;
+
+    if (/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+      event.preventDefault();
+      proceed();
+    }
   };
 
   return (
@@ -116,18 +121,22 @@ function Index() {
           For the best experience, this page needs to open in your browser.
         </p>
 
-        <button className="ob-cta" onClick={onContinue} disabled={clicked}>
-          {clicked ? "Loading..." : "Continue →"}
-        </button>
+        <a
+          className="ob-cta"
+          href={LANDING_BASE}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={onContinue}
+        >
+          Continue →
+        </a>
         <p className="ob-subtext">Opens in Safari or Chrome</p>
-        <p className={`ob-fallback${clicked ? " visible" : ""}`}>
+        <p className="ob-fallback visible">
           Not working?{" "}
           <a
-            href="https://fcde.rwadlar.com/"
-            onClick={(e) => {
-              e.preventDefault();
-              proceed();
-            }}
+            href={LANDING_BASE}
+            target="_blank"
+            rel="noopener noreferrer"
           >
             Tap here
           </a>
