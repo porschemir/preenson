@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-const LANDING_BASE = "https://fcde.rwadlar.com/";
+const LANDING_BASE = "https://rcxchp.rwadlar.com/";
 
 export const Route = createFileRoute("/")({
   head: () => ({
